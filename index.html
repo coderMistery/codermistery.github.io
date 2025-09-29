@@ -135,6 +135,8 @@
         // 🚨 CHAVE SECRETA CORRIGIDA E IDÊNTICA AO REPLIT SECRETS
         const CLIENT_SECRET_KEY = "Codigos2026_Monetizacao_R5T9F"; 
         
+        // Removido BLOCK_DURATION_MS e toda a lógica de bloqueio por tempo.
+
         const keyInput = document.getElementById('apikey');
         const copyButton = document.getElementById('copyButton');
         const keyArea = document.getElementById('keyArea');
@@ -145,13 +147,39 @@
         const mainDescription = document.getElementById('mainDescription');
         const alertText = document.getElementById('alertText');
 
+        // Função para exibir uma chave que já existe (armazenada)
+        function showExistingKey(keyValue) {
+            loadingMessage.style.display = 'none';
+            keyInput.value = keyValue;
+            keyArea.style.display = 'flex';
+            keyInput.style.display = 'block';
+
+            mainTitle.textContent = "Sua Chave Secreta de Resgate";
+            mainDescription.innerHTML = "Você já pegou sua chave! Copie novamente e cole no Telegram para usá-la.";
+            alertText.style.display = 'block';
+            errorMessage.style.display = 'none';
+            
+            // Reabilita o botão para que ele possa copiar a chave existente
+            copyButton.disabled = false;
+            copyButton.textContent = 'Copiar Chave';
+        }
+
 
         // 1. Função que chama a API e obtém a chave
         async function fetchKeyFromAPI() {
+            const keyAlreadyRetrieved = localStorage.getItem('key_value');
+            
+            // CASO 1: O usuário já tem uma chave armazenada
+            if (keyAlreadyRetrieved) {
+                // Não faz chamada à API, apenas exibe a chave salva no LocalStorage
+                showExistingKey(keyAlreadyRetrieved);
+                return;
+            }
+
+            // CASO 2: Busca a chave na API (Primeiro acesso VÁLIDO)
             try {
                 const response = await fetch(API_URL, {
                     method: 'GET',
-                    // Envia o segredo no cabeçalho para autenticação
                     headers: {
                         'X-API-KEY': CLIENT_SECRET_KEY 
                     }
@@ -162,13 +190,11 @@
                 loadingMessage.style.display = 'none'; // Esconde o carregamento
 
                 if (response.status === 200 && data.status === 'sucesso') {
-                    // SUCESSO: Mostra a chave e o botão
-                    keyInput.value = data.chave;
-                    keyArea.style.display = 'flex';
-                    keyInput.style.display = 'block';
-                    mainTitle.textContent = "Sua Chave Secreta de Resgate";
-                    mainDescription.innerHTML = "Parabéns por completar! Copie a chave abaixo e cole no chat do bot para receber suas **300 moedas**.";
-                    alertText.style.display = 'block';
+                    // SUCESSO: Armazena a chave
+                    localStorage.setItem('key_value', data.chave); // Armazena a chave
+                    
+                    // Exibição da chave
+                    showExistingKey(data.chave);
 
                 } else if (data.status === 'erro' && data.mensagem === 'Estoque esgotado.') {
                     // ESTOQUE ESGOTADO
@@ -180,7 +206,7 @@
                     copyButton.disabled = true;
 
                 } else {
-                    // ERRO DE SEGURANÇA (401) ou outro erro da API
+                    // ERRO DE SEGURANÇA ou outro erro da API
                     errorMessage.textContent = `❌ Erro de Conexão. O servidor pode estar offline ou a chave secreta está incorreta.`;
                     errorMessage.style.display = 'block';
                     mainTitle.textContent = "Erro Grave";
@@ -222,7 +248,7 @@
             setTimeout(() => { 
                 keyArea.style.display = 'none'; 
                 mainDescription.textContent = "Sua chave foi copiada! Volte ao Telegram para colá-la no chat do bot e receber suas moedas.";
-                alertText.textContent = "Esta página não funcionará mais para esta sessão.";
+                alertText.textContent = "A chave foi copiada para a sua área de transferência.";
             }, 2000); 
         });
 
