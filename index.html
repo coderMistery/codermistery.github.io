@@ -10,7 +10,7 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            background: #1e1e2d; /* Fundo Dark Mode mais escuro */
+            background: #1e1e2d; 
             color: #ffffff;
             font-family: 'Arial', sans-serif;
             margin: 0;
@@ -19,14 +19,14 @@
         .wrapper {
             max-width: 500px;
             width: 100%;
-            background: #2a2a3e; /* Container mais claro */
+            background: #2a2a3e;
             padding: 40px;
             border-radius: 12px;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
             text-align: center;
         }
         h1 {
-            color: #00bcd4; /* Azul ciano vibrante */
+            color: #00bcd4;
             font-size: 1.8em;
             margin-bottom: 10px;
         }
@@ -53,7 +53,9 @@
             color: #f0f0f0;
             font-size: 1.1em;
             text-align: center;
-            user-select: all; /* Permite fácil seleção em mobile */
+            user-select: all;
+            /* Inicia escondido */
+            display: none; 
         }
         #copyButton {
             padding: 15px 20px;
@@ -65,55 +67,167 @@
             font-weight: bold;
             transition: background-color 0.3s, transform 0.1s;
         }
-        #copyButton:hover {
+        #copyButton:hover:not(:disabled) {
             background-color: #0097a7;
         }
-        #copyButton:active {
+        #copyButton:active:not(:disabled) {
             transform: scale(0.98);
+        }
+        #copyButton:disabled {
+            background-color: #555;
+            cursor: not-allowed;
         }
         .alert {
             color: #ffcc00;
             font-weight: bold;
             margin-top: 15px;
         }
+        #loadingMessage {
+            color: #00bcd4;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+        #feedbackMessage {
+            margin-top: 30px;
+            font-size: 1.2em;
+            color: #5cb85c;
+            font-weight: bold;
+            display: none; 
+        }
+        #errorMessage {
+            color: #ff6347;
+            font-weight: bold;
+            margin-top: 15px;
+            font-size: 1.1em;
+            display: none;
+        }
     </style>
 </head>
 <body>
     <div class="wrapper">
         <span class="emoji">🔑</span>
-        <h1>Sua Chave Secreta de Resgate</h1>
-        <p>Parabéns por completar o processo! Copie a chave abaixo e cole no chat do bot para receber suas **300 moedas**.</p>
+        <h1 id="mainTitle">Obtendo Sua Chave...</h1>
+        <p id="mainDescription">Aguarde enquanto verificamos o estoque disponível no servidor.</p>
         
-        <div class="key-area">
+        <p id="loadingMessage">Carregando...</p>
+        
+        <div class="key-area" id="keyArea" style="display:none;">
+            
             <input 
                 type="text" 
                 id="apikey" 
-                value="CHAVE-DE-TESTE-MANUAL" 
+                value="..." 
                 readonly 
             />
+            
             <button id="copyButton">Copiar</button>
         </div>
         
-        <p class="alert">Lembre-se: A chave só funciona uma vez!</p>
+        <p id="errorMessage">Erro ao carregar a chave.</p>
+        <p class="alert" id="alertText">Lembre-se: A chave só funciona uma vez!</p>
+
+        <p id="feedbackMessage">✅ CHAVE COPIADA! Volte ao Telegram para usar seu código.</p>
     </div>
 
     <script>
-        document.getElementById('copyButton').addEventListener('click', function() {
-            var keyInput = document.getElementById('apikey');
+        // 🚨 CONFIGURAÇÃO CRÍTICA 🚨
+        const API_URL = "https://f0a5b69e-87b5-41c6-b1c6-aa6b6af54f74-00-3br5arpmhqeoh.riker.replit.dev/get_unique_key"; 
+        // 🚨 CHAVE SECRETA QUE DEVE SER IDÊNTICA À QUE ESTÁ NO REPLIT SECRETS
+        const CLIENT_SECRET_KEY = "Sensi_AI_Mestre_456!_ULTRA"; 
+        
+        const keyInput = document.getElementById('apikey');
+        const copyButton = document.getElementById('copyButton');
+        const keyArea = document.getElementById('keyArea');
+        const loadingMessage = document.getElementById('loadingMessage');
+        const errorMessage = document.getElementById('errorMessage');
+        const feedback = document.getElementById('feedbackMessage');
+        const mainTitle = document.getElementById('mainTitle');
+        const mainDescription = document.getElementById('mainDescription');
+        const alertText = document.getElementById('alertText');
+
+
+        // 1. Função que chama a API e obtém a chave
+        async function fetchKeyFromAPI() {
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'GET',
+                    // Envia o segredo no cabeçalho para autenticação
+                    headers: {
+                        'X-API-KEY': CLIENT_SECRET_KEY 
+                    }
+                });
+
+                const data = await response.json();
+                
+                loadingMessage.style.display = 'none'; // Esconde o carregamento
+
+                if (response.status === 200 && data.status === 'sucesso') {
+                    // SUCESSO: Mostra a chave e o botão
+                    keyInput.value = data.chave;
+                    keyArea.style.display = 'flex';
+                    keyInput.style.display = 'block';
+                    mainTitle.textContent = "Sua Chave Secreta de Resgate";
+                    mainDescription.innerHTML = "Parabéns por completar! Copie a chave abaixo e cole no chat do bot para receber suas **300 moedas**.";
+                    alertText.style.display = 'block';
+
+                } else if (data.status === 'erro' && data.mensagem === 'Estoque esgotado.') {
+                    // ESTOQUE ESGOTADO
+                    errorMessage.textContent = "❌ ESTOQUE ESGOTADO! Tente novamente mais tarde.";
+                    errorMessage.style.display = 'block';
+                    mainTitle.textContent = "Estoque Esgotado";
+                    mainDescription.textContent = "O administrador precisa reabastecer as chaves. Por favor, volte em breve.";
+                    alertText.style.display = 'none';
+                    copyButton.disabled = true;
+
+                } else {
+                    // ERRO DE SEGURANÇA ou outro erro da API
+                    errorMessage.textContent = `❌ Erro de Conexão. O servidor pode estar offline ou a chave secreta está incorreta.`;
+                    errorMessage.style.display = 'block';
+                    mainTitle.textContent = "Erro Grave";
+                    mainDescription.textContent = "Por favor, contate o administrador.";
+                    alertText.style.display = 'none';
+                    copyButton.disabled = true;
+                }
+
+            } catch (error) {
+                // ERRO GERAL (ex: servidor offline)
+                loadingMessage.style.display = 'none';
+                errorMessage.textContent = `❌ Servidor offline. Tente novamente mais tarde. (${error.message})`;
+                errorMessage.style.display = 'block';
+                mainTitle.textContent = "Erro de Conexão";
+                mainDescription.textContent = "O bot pode estar desligado ou houve falha na rede.";
+                alertText.style.display = 'none';
+                copyButton.disabled = true;
+            }
+        }
+
+
+        // 2. Lógica do botão Copiar
+        copyButton.addEventListener('click', function() {
             
-            // Seleciona o texto no input
+            // Copia o texto
             keyInput.select();
-            keyInput.setSelectionRange(0, 99999); // Para mobile
-            
-            // Copia o texto para a área de transferência
+            keyInput.setSelectionRange(0, 99999);
             document.execCommand('copy');
             
-            // Feedback visual
+            // Desabilita o botão e esconde a chave
+            this.disabled = true;
             this.textContent = 'Copiado! ✅';
-            setTimeout(() => {
-                this.textContent = 'Copiar';
-            }, 2000);
+            keyArea.style.opacity = '0.5'; 
+            
+            // Exibe a mensagem de feedback final
+            feedback.style.display = 'block';
+            
+            // Esconde a chave após um tempo
+            setTimeout(() => { 
+                keyArea.style.display = 'none'; 
+                mainDescription.textContent = "Sua chave foi copiada! Volte ao Telegram para colá-la no chat do bot e receber suas moedas.";
+                alertText.textContent = "Esta página não funcionará mais para esta sessão.";
+            }, 2000); 
         });
+
+        // Inicia a busca pela chave
+        document.addEventListener('DOMContentLoaded', fetchKeyFromAPI);
     </script>
 </body>
 </html>
