@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chave de Resgate - Sensi IA</title>
+    <style>
+        body {
+            text-align: center;
+            background: #282c34;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            padding-top: 60px;
+        }
+        .wrapper {
+            max-width: 90%;
+            margin: 0 auto;
+            background: #3c4049;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+        }
+        h1 {
+            color: #61dafb;
+        }
+        p {
+            margin-bottom: 20px;
+        }
+        #apikey {
+            background-color: #21252b;
+            border: 2px solid #61dafb;
+            color: #e0e0e0;
+            padding: 15px;
+            border-radius: 5px;
+            font-size: 1.2em;
+            text-align: center;
+            width: 90%;
+            cursor: pointer;
+        }
+        .alert {
+            color: #ff9900;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <h1>🔑 Sua Chave Secreta de Resgate</h1>
+        <p>Parabéns por completar o processo! Copie a chave abaixo e cole diretamente no chat do bot para receber suas **300 moedas**.</p>
+        
+        <input 
+            class="form-control" 
+            id="apikey" 
+            type="text" 
+            value="CHAVE-DE-TESTE-MANUAL" 
+            readonly 
+            onclick="this.select(); document.execCommand('copy'); alert('Chave copiada com sucesso!');"
+        />
+        
+        <p class="alert">Lembre-se: A chave só funciona uma vez!</p>
+    </div>
+</body>
+</html>
