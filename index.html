@@ -132,8 +132,8 @@
     <script>
         // 🚨 CONFIGURAÇÃO CRÍTICA 🚨
         const API_URL = "https://f0a5b69e-87b5-41c6-b1c6-aa6b6af54f74-00-3br5arpmhqeoh.riker.replit.dev/get_unique_key"; 
-        // 🚨 CHAVE SECRETA QUE DEVE SER IDÊNTICA À QUE ESTÁ NO REPLIT SECRETS
-        const CLIENT_SECRET_KEY = "Sensi_AI_Mestre_456!_ULTRA"; 
+        // 🚨 CHAVE SECRETA CORRIGIDA E IDÊNTICA AO REPLIT SECRETS
+        const CLIENT_SECRET_KEY = "Codigos2026_Monetizacao_R5T9F"; 
         
         const keyInput = document.getElementById('apikey');
         const copyButton = document.getElementById('copyButton');
@@ -180,7 +180,7 @@
                     copyButton.disabled = true;
 
                 } else {
-                    // ERRO DE SEGURANÇA ou outro erro da API
+                    // ERRO DE SEGURANÇA (401) ou outro erro da API
                     errorMessage.textContent = `❌ Erro de Conexão. O servidor pode estar offline ou a chave secreta está incorreta.`;
                     errorMessage.style.display = 'block';
                     mainTitle.textContent = "Erro Grave";
